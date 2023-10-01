@@ -1,6 +1,6 @@
 import talib
 from helpers import show_progress
-from indicator_rsibands_lb import rsibands_lb
+from indicator_rsibands import rsibands_lb
 import logging
 
 
@@ -50,15 +50,21 @@ class Strategy:
             os_level=self.os_level,
             length=self.length,
         )
-        cci = talib.CCI(self.df["High"], self.df["Low"], self.df["Close"], 30)
+        cci = talib.CCI(self.df["High"], self.df["Low"], self.df["Close"], self.length)
 
         # Generate the trading signals
         signals = []
         for i in range(len(self.df)):
-            if (
-                rsibands_data["ub"].iloc[i] < self.df["Close"].iloc[i]
-                and cci.iloc[i] < -100
-            ):
+            prew_price = self.df["Close"].iloc[i-1]
+            prew_low = rsibands_data["lb"].iloc[i-1]
+            prew_up = rsibands_data["ub"].iloc[i-1]
+            curr_price = self.df["Close"].iloc[i]
+            curr_low = rsibands_data["lb"].iloc[i]
+            curr_up = rsibands_data["ub"].iloc[i]
+            # якщо поточна ціна активу перетинає нижню лінію RSIBANDS_LB згори вниз, 
+            # а CCI менше “-100”, відкрити LONG
+            
+            if prew_price > prew_low and curr_price <= curr_low and cci.iloc[i] < -100:
                 signal = {
                     "action": True,
                     "entry_price": self.df["Close"].iloc[i],
@@ -69,10 +75,9 @@ class Strategy:
                 signals.append(signal)
                 logging.info(f"Generated long signal at {i}")
                 logging.info(f"Signal: {signal}")
-            elif (
-                rsibands_data["lb"].iloc[i] > self.df["Close"].iloc[i]
-                and cci.iloc[i] > 120
-            ):
+            #якщо поточна ціна активу перетинає верхню лінію RSIBANDS_LB знизу вгору,
+            # а CCI більше “120”, відкрити SHORT
+            elif prew_price < prew_up and curr_price >= curr_up and cci.iloc[i] > 120:
                 signal = {
                     "action": True,
                     "entry_price": self.df["Close"].iloc[i],
@@ -92,6 +97,6 @@ class Strategy:
                     "position": None,
                 }
                 signals.append(signal)
-                logging.info(f"Generated no trading signal at {i}")
+                # logging.info(f"Generated no trading signal at {i}")
             show_progress(i, self.df, "generating the trading signals")
         return signals

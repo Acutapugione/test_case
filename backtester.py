@@ -31,6 +31,7 @@ def backtest(df: pd.DataFrame, strategy: Strategy, commission: float = 0.005) ->
         i+=1
         if signal["action"]:
             trade = {
+                "position": signal["position"],
                 "entry": signal["entry_price"],
                 "tp": signal["tp"],
                 "sl": signal["sl"],
@@ -45,17 +46,26 @@ def backtest(df: pd.DataFrame, strategy: Strategy, commission: float = 0.005) ->
     i = 0
     for trade in trades:
         i += 1
-        if trade["tp"] > trade["sl"]:
-            trade["profit"] = trade["tp"] - trade["entry"] - trade["sl"] * commission
+        if trade["position"] == "long":
+            trade_type = "LONG"
+        elif trade["position"] == "short":
+            trade_type = "SHORT"
         else:
-            trade["profit"] = -trade["entry"] - trade["sl"] * commission
+            raise ValueError(f"Invalid trade action: {trade['position']}" )
+        
+        
+        if trade_type == "LONG":
+            trade["profit"] = trade["tp"] - trade["entry"] - trade["sl"] * commission
+        elif trade_type == "SHORT":
+            trade["profit"] = -trade["entry"] + trade["sl"] - trade["sl"] * commission
+
         logging.info(f"Calculated profit for trade at index {i}")
         logging.info(f"Profit {trade['profit']}")
         show_progress(i, trades, 'calculating the profits')
     # Calculate the total profit, win rate, and profit factor
     total_profit = sum(trade["profit"] for trade in trades)
-    winrate = sum(trade["profit"] > 0 for trade in trades) / len(trades)
-    profit_factor = np.prod(trade["profit"] + [1])
+    winrate = sum(trade["profit"] > 0 for trade in trades) / len(trades) if len(trades)>0 else 0
+    profit_factor = np.prod([trade["profit"] for trade in trades] + [1])
 
     logging.info(f"Total profit: {total_profit}")
     logging.info(f"Win rate: {winrate * 100}%")
