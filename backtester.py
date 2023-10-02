@@ -76,7 +76,7 @@ def backtest(df: pd.DataFrame, strategy: Strategy, commission: float = 0.005) ->
                             'action': current_process['action'],
                             'start' : current_process['position'],
                             'stop' : signal['position'],
-                            'profit_loss':  (current_process['tp'] - current_process['entry_price']) * (1 - commission)**2
+                            'profit_loss':  ( current_process['entry_price'] - current_process['tp']) * (1 - commission)**2
                         })
                         save['result'] = 'win'
                         current_process = None
