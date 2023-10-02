@@ -62,7 +62,7 @@ def backtest(df: pd.DataFrame, strategy: Strategy, commission: float = 0.005) ->
                             'action': current_process['action'],
                             'start' : current_process['position'],
                             'stop' : signal['position'],
-                            'profit_loss':  (current_process['sl'] - current_process['entry_price']) * (1 - commission)**2
+                            'profit_loss':  (current_process['sl'] - current_process['entry_price']) * (1 + commission)**2
                         })
                         current_process = None
                         save['result'] = 'loss'
@@ -86,7 +86,7 @@ def backtest(df: pd.DataFrame, strategy: Strategy, commission: float = 0.005) ->
                             'action': current_process['action'],
                             'start' : current_process['position'],
                             'stop' : signal['position'],
-                            'profit_loss':   (current_process['sl'] - current_process['entry_price']) * (1 + commission)**2
+                            'profit_loss':   - (current_process['sl'] - current_process['entry_price']) * (1 + commission)**2
                         })
                         save['result'] = 'loss'
                         current_process = None
@@ -111,7 +111,7 @@ def backtest(df: pd.DataFrame, strategy: Strategy, commission: float = 0.005) ->
     # print(trade["profit_loss"] for trade in trades['win'])
     # exit()
     win_total = sum([trade["profit_loss"] for trade in trades['win']]) 
-    loss_total = sum([trade["profit_loss"] for trade in trades['loss']])
+    loss_total = sum([ np.abs(trade["profit_loss"])for trade in trades['loss']])
     total_profit = win_total - loss_total
     winrate = len(trades['win']) / len(trades['win'] + trades['loss'])
     # profit_factor = np.prod([trade["profit_loss"] for trade in trades['win'] + trades['loss']])
