@@ -68,8 +68,8 @@ class Strategy:
                 signal = {
                     "action": "long",
                     "entry_price": self.df["Close"].iloc[i],
-                    "tp": self.df["Close"].iloc[i] * 1.01,
-                    "sl": self.df["Close"].iloc[i] * 1.004,
+                    "tp": self.df["Close"].iloc[i] + self.df["Close"].iloc[i] * 0.01,
+                    "sl": self.df["Close"].iloc[i] - self.df["Close"].iloc[i] * 0.004,
                     "position": i,
                 }
                 signals.append(signal)
@@ -81,8 +81,8 @@ class Strategy:
                 signal = {
                     "action": "short",
                     "entry_price": self.df["Close"].iloc[i],
-                    "tp": self.df["Close"].iloc[i] * 1.11,
-                    "sl": self.df["Close"].iloc[i] * 1.05,
+                    "tp": self.df["Close"].iloc[i] - self.df["Close"].iloc[i] * 0.011,
+                    "sl": self.df["Close"].iloc[i] + self.df["Close"].iloc[i] * 0.005,
                     "position": i,
                 }
                 signals.append(signal)
