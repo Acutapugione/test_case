@@ -34,7 +34,7 @@ def backtest(df: pd.DataFrame, strategy: Strategy, commission: float = 0.005) ->
     current_process = None
     save = None
     for signal in signals:
-        i+=1
+        
         if signal["action"]:
             
             # Якщо немає поточної ставки, свторюємо ставку від сигналу
@@ -55,21 +55,21 @@ def backtest(df: pd.DataFrame, strategy: Strategy, commission: float = 0.005) ->
                             'profit_loss':  (current_process['tp'] - current_process['entry_price']) * (1 - commission)**2
                         })
                         current_process = None
-                        save['result'] = 'loss'
+                        save['result'] = 'win'
                     elif signal['entry_price'] <= current_process['sl']:
                         # loss
                         trades['loss'].append({
                             'action': current_process['action'],
                             'start' : current_process['position'],
                             'stop' : signal['position'],
-                            'profit_loss':  - (current_process['tp'] - current_process['entry_price']) * (1 - commission)**2
+                            'profit_loss':  (current_process['sl'] - current_process['entry_price']) * (1 - commission)**2
                         })
                         current_process = None
                         save['result'] = 'loss'
 
                 # Якщо поточна ставка Short, перевіряємо на StopLoss та TradeProfit
                 elif current_process['action'] == 'short':
-                    # Long
+                    # Short
                     if signal['entry_price'] <= current_process['tp'] :
                         # win
                         trades['win'].append({
@@ -86,7 +86,7 @@ def backtest(df: pd.DataFrame, strategy: Strategy, commission: float = 0.005) ->
                             'action': current_process['action'],
                             'start' : current_process['position'],
                             'stop' : signal['position'],
-                            'profit_loss':  - (current_process['tp'] - current_process['entry_price']) * (1 - commission)**2
+                            'profit_loss':   (current_process['sl'] - current_process['entry_price']) * (1 - commission)**2
                         })
                         save['result'] = 'loss'
                         current_process = None
@@ -106,18 +106,19 @@ def backtest(df: pd.DataFrame, strategy: Strategy, commission: float = 0.005) ->
             # logging.info(f"Added trade to list at index {i}")
             # logging.info(f"Trade {trade}")
         
-        show_progress(i-1, signals, 'creating a list of trades')
+        show_progress(i, signals, 'creating a list of trades')
+        i+=1
     win_total = sum([trade["profit_loss"] for trade in trades['win']]) 
-    loss_total = sum([trade["profit_loss"] for trade in trades['loss']])
+    loss_total = sum([np.abs(trade["profit_loss"]) for trade in trades['loss']])
     total_profit = win_total - loss_total
     winrate = len(trades['win']) / len(trades['win'] + trades['loss'])
-    profit_factor = np.prod([trade["profit_loss"] for trade in trades['win'] + trades['loss']])
+    # profit_factor = np.prod([trade["profit_loss"] for trade in trades['win'] + trades['loss']])
 
     logging.info(f"Win total: {win_total}")
     logging.info(f"Loss total: {loss_total}")
     logging.info(f"Total net profit: {total_profit}")
     logging.info(f"Win rate: {winrate * 100}%")
-    logging.info(f"Profit factor: {win_total/np.abs(loss_total)}")
+    logging.info(f"Profit factor: {win_total/loss_total}")
     
     # Return the backtest results
     return {

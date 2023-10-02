@@ -91,9 +91,6 @@ class Strategy:
             else:
                 signal = {
                     "action": False,
-                    "entry_price": self.df["Close"].iloc[i],
-                    "tp": self.df["Close"].iloc[i],
-                    "sl": self.df["Close"].iloc[i],
                     "position": None,
                 }
                 signals.append(signal)
