@@ -50,7 +50,7 @@ class Strategy:
             os_level=self.os_level,
             length=self.length,
         )
-        cci = talib.CCI(self.df["High"], self.df["Low"], self.df["Close"], self.length)
+        cci = talib.CCI(self.df["High"], self.df["Low"], self.df["Close"], 30)
 
         # Generate the trading signals
         signals = []
@@ -66,11 +66,11 @@ class Strategy:
             
             if prew_price > prew_low and curr_price <= curr_low and cci.iloc[i] < -100:
                 signal = {
-                    "action": True,
+                    "action": "long",
                     "entry_price": self.df["Close"].iloc[i],
                     "tp": self.df["Close"].iloc[i] * 1.01,
                     "sl": self.df["Close"].iloc[i] * 1.004,
-                    "position": "long",
+                    "position": i,
                 }
                 signals.append(signal)
                 logging.info(f"Generated long signal at {i}")
@@ -79,11 +79,11 @@ class Strategy:
             # а CCI більше “120”, відкрити SHORT
             elif prew_price < prew_up and curr_price >= curr_up and cci.iloc[i] > 120:
                 signal = {
-                    "action": True,
+                    "action": "short",
                     "entry_price": self.df["Close"].iloc[i],
                     "tp": self.df["Close"].iloc[i] * 1.11,
                     "sl": self.df["Close"].iloc[i] * 1.05,
-                    "position": "short",
+                    "position": i,
                 }
                 signals.append(signal)
                 logging.info(f"Generated short signal at {i}")

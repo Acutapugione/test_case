@@ -13,5 +13,5 @@ def show_progress(i, total, name='profits'):
     percentage = int((i / length) * 100)
     sys.stdout.write(f"\rProcessed {name} {i}/{length} ({percentage}%)")
     sys.stdout.flush()
-    if i >= length-1:
+    if i == length-1:
         sys.stdout.write("\n\n")
